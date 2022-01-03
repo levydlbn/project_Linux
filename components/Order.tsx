@@ -1,115 +1,118 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Text, View, Image, TouchableOpacity } from 'react-native'
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps'
-import MapViewDirections from 'react-native-maps-directions'
+import React from "react";
+import {
+    View,
+    Text,
+    Image,
+    TouchableOpacity
+} from "react-native";
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import MapViewDirections from "react-native-maps-directions";
 
-const Order = ({ route, navigation }) => {
+import { COLORS, FONTS, icons, SIZES, GOOGLE_API_KEY } from "../constants"
 
-    const mapView = useRef()
-    const GOOGLE_MAPS_APIKEY = 'AIzaSyBV-lXGDU_YWDIggtNuEqIv-j93ZmhAvN8'
+const OrderDelivery = ({ route, navigation }) => {
 
-    const [restaurent, setRestaurent] = useState(null)
-    const [streetName, setStreetName] = useState('')
-    const [fromLocation, setFromLocation] = useState(null)
-    const [toLocation, setTolocation] = useState(null)
-    const [region, setRegion] = useState(null)  
+    const mapView = React.useRef()
 
-    const [duration, setDuration] = useState(30)
-    const [isReady, setIsReady] = useState(false)
-    const [angle, setAngle] = useState(0)
-    
-    useEffect(() => {
-        let { restaurent, currentLocation } = route.params
+    const [restaurant, setRestaurant] = React.useState(null)
+    const [streetName, setStreetName] = React.useState("")
+    const [fromLocation, setFromLocation] = React.useState(null)
+    const [toLocation, setToLocation] = React.useState(null)
+    const [region, setRegion] = React.useState(null)
+
+    const [duration, setDuration] = React.useState(0)
+    const [isReady, setIsReady] = React.useState(false)
+    const [angle, setAngle] = React.useState(0)
+
+    React.useEffect(() => {
+        let { restaurant, currentLocation } = route.params;
 
         let fromLoc = currentLocation.gps
-        let toLoc = restaurent.location
-        const currentLocations = currentLocation
-        let street = currentLocations.streetName
+        let toLoc = restaurant.location
+        let street = currentLocation.streetName
 
         let mapRegion = {
             latitude: (fromLoc.latitude + toLoc.latitude) / 2,
             longitude: (fromLoc.longitude + toLoc.longitude) / 2,
             latitudeDelta: Math.abs(fromLoc.latitude - toLoc.latitude) * 2,
-            longitudeDelta: Math.abs(fromLoc.longitude - toLoc.longitude) * 2,
+            longitudeDelta: Math.abs(fromLoc.longitude - toLoc.longitude) * 2
         }
 
-        setRestaurent(restaurent)
+        setRestaurant(restaurant)
         setStreetName(street)
         setFromLocation(fromLoc)
-        setTolocation(toLoc)
+        setToLocation(toLoc)
         setRegion(mapRegion)
 
-    },[])
+    }, [])
 
-    const calculateAngle = (coordinates) => {
+    function calculateAngle(coordinates) {
         let startLat = coordinates[0]["latitude"]
-        let starLng = coordinates[0]["longitude"]
+        let startLng = coordinates[0]["longitude"]
         let endLat = coordinates[1]["latitude"]
         let endLng = coordinates[1]["longitude"]
         let dx = endLat - startLat
-        let dy = endLng - starLng
+        let dy = endLng - startLng
 
         return Math.atan2(dy, dx) * 180 / Math.PI
     }
 
-    const zoomIn = () => {
+    function zoomIn() {
         let newRegion = {
             latitude: region.latitude,
             longitude: region.longitude,
             latitudeDelta: region.latitudeDelta / 2,
-            longitudeDelta: region.longitudeDelta / 2,
+            longitudeDelta: region.longitudeDelta / 2
         }
 
         setRegion(newRegion)
-        mapView.current.animateToRegion(newRegion, 200) 
+        mapView.current.animateToRegion(newRegion, 200)
     }
 
-    const zoomOut = () => {
+    function zoomOut() {
         let newRegion = {
             latitude: region.latitude,
             longitude: region.longitude,
             latitudeDelta: region.latitudeDelta * 2,
-            longitudeDelta: region.longitudeDelta * 2,
+            longitudeDelta: region.longitudeDelta * 2
         }
 
         setRegion(newRegion)
-        mapView.current.animateToRegion(newRegion, 200) 
+        mapView.current.animateToRegion(newRegion, 200)
     }
 
-    const renderMap = () => {
-
- 
+    function renderMap() {
         const destinationMarker = () => (
             <Marker
-               coordinate={fromLocation}
+                coordinate={toLocation}
             >
                 <View
-                  style={{
-                      height: 40,
-                      width: 40,
-                      borderRadius: 20,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'white',
-                  }}
+                    style={{
+                        height: 40,
+                        width: 40,
+                        borderRadius: 20,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: COLORS.white
+                    }}
                 >
                     <View
-                      style={{
-                          height: 34,
-                          width: 34,
-                          borderRadius: 16,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: '#fa6115',
-                      }}
+                        style={{
+                            height: 30,
+                            width: 30,
+                            borderRadius: 15,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: COLORS.primary
+                        }}
                     >
-                        <Image 
-                           source={(require('../static/images/pinIcon.png'))}
-                           style={{
-                               width: 20,
-                               height: 28,
-                               tintColor: 'white'
-                           }}
+                        <Image
+                            source={icons.pin}
+                            style={{
+                                width: 25,
+                                height: 25,
+                                tintColor: COLORS.white
+                            }}
                         />
                     </View>
                 </View>
@@ -118,135 +121,139 @@ const Order = ({ route, navigation }) => {
 
         const carIcon = () => (
             <Marker
-               coordinate={toLocation}
-               anchor={{x: 0.5, y: 0.5}}
-               flat={true}
-               rotation={angle}
+                coordinate={fromLocation}
+                anchor={{ x: 0.5, y: 0.5 }}
+                flat={true}
+                rotation={angle}
             >
-                <Image 
-                   source={(require('../static/images/carIcon.png'))}
-                   style={{
-                       width: 40,
-                       height: 40,
-                   }}
+                <Image
+                    source={icons.car}
+                    style={{
+                        width: 40,
+                        height: 40
+                    }}
                 />
             </Marker>
         )
 
-
         return (
-            <View style={{flex: 1,}}>
-                <MapView 
-                  ref={mapView}
-                  provider={PROVIDER_GOOGLE}
-                  initialRegion={region}
-                  style={{ flex: 1 }}
+            <View style={{ flex: 1 }}>
+                <MapView
+                    ref={mapView}
+                    provider={PROVIDER_GOOGLE}
+                    initialRegion={region}
+                    style={{ flex: 1 }}
                 >
-                    <MapViewDirections 
-                       origin={fromLocation}
-                       destination={toLocation}
-                       apikey={GOOGLE_MAPS_APIKEY}
-                       strokeWidth={5}
-                       strokeColor="blue"
-                       optimizeWaypoints={true}
-                       onReady={result => {
-                           setDuration(20)
+                    <MapViewDirections
+                        origin={fromLocation}
+                        destination={toLocation}
+                        apikey={GOOGLE_API_KEY}
+                        strokeWidth={5}
+                        strokeColor={COLORS.primary}
+                        optimizeWaypoints={true}
+                        onReady={result => {
+                            setDuration(result.duration)
 
-                           if(!isReady) {
-                               // fit route into maps
-                               
+                            if (!isReady) {
+                                mapView.current.fitToCoordinates(result.coordinates, {
+                                    edgePadding: {
+                                        right: (SIZES.width / 20),
+                                        bottom: (SIZES.height / 4),
+                                        left: (SIZES.width / 20),
+                                        top: (SIZES.height / 8)
+                                    }
+                                })
 
-                               // reposition the car
-                               let nextLoc = {
-                                   latitude: result.coordinates[0]["latitude"],
-                                   longitude: result.coordinates[0]["longitude"]
-                               }
+                                let nextLoc = {
+                                    latitude: result.coordinates[0]["latitude"],
+                                    longitude: result.coordinates[0]["longitude"]
+                                }
 
-                               if(result.coordinates.length >= 2) {
-                                   let angle = calculateAngle(result.coordinates)
-                                   setAngle(angle)
-                               }
+                                if (result.coordinates.length >= 2) {
+                                    let angle = calculateAngle(result.coordinates)
+                                    setAngle(angle)
+                                }
 
-                               setFromLocation(nextLoc)
-                               setIsReady(true)
-                           }
-                       }}
+                                setFromLocation(nextLoc)
+                                setIsReady(true)
+                            }
+                        }}
                     />
                     {destinationMarker()}
-                    {carIcon()}
+                    {fromLocation? carIcon() : null}
                 </MapView>
             </View>
         )
     }
 
-    const renderDestinationHeader = () => {
+    function renderDestinationHeader() {
         return (
             <View
-              style={{
-                  position: 'absolute',
-                  top: 50,
-                  left: 0,
-                  right: 0,
-                  height: 50,
-                  alignItems: 'center',
-                  justifyContent: 'center'
-              }}
+                style={{
+                    position: 'absolute',
+                    top: 50,
+                    left: 0,
+                    right: 0,
+                    height: 50,
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
             >
                 <View
-                  style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      width: 380,
-                      paddingVertical: 8,
-                      paddingHorizontal: 12,
-                      borderRadius: 25,
-                      backgroundColor: 'white'
-                  }}
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        width: SIZES.width * 0.9,
+                        paddingVertical: SIZES.padding,
+                        paddingHorizontal: SIZES.padding * 2,
+                        borderRadius: SIZES.radius,
+                        backgroundColor: COLORS.white
+                    }}
                 >
-                    <Image 
-                       source={(require('../static/images/pinIcon.png'))}
-                       style={{
-                           width: 20,
-                           height: 28,
-                           marginRight: 6,
-                           tintColor: '#444'
-                       }}
+                    <Image
+                        source={icons.red_pin}
+                        style={{
+                            width: 30,
+                            height: 30,
+                            marginRight: SIZES.padding
+                        }}
                     />
 
                     <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 18, color: '#444' }}>{streetName}</Text>
+                        <Text style={{ ...FONTS.body3 }}>{streetName}</Text>
                     </View>
 
-                    <Text style={{ fontSize: 18 }}>{Math.ceil(duration)} mins</Text>
+                    <Text style={{ ...FONTS.body3 }}>{Math.ceil(duration)} mins</Text>
                 </View>
             </View>
         )
     }
 
-    const renderdeliveryIndo = () => {
+    function renderDeliveryInfo() {
         return (
             <View
-              style={{
-                  position: 'absolute',
-                  bottom: 30,
-                  left: 0,
-                  right: 0,
-                  alignItems: 'center',
-                  justifyContent: 'center'
-              }}
+                style={{
+                    position: 'absolute',
+                    bottom: 50,
+                    left: 0,
+                    right: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
             >
-                <View 
-                   style={{
-                       width: 380,
-                       paddingVertical: 18,
-                       paddingHorizontal: 12,
-                       borderRadius: 25,
-                       backgroundColor: 'white'
-                   }}
+                <View
+                    style={{
+                        width: SIZES.width * 0.9,
+                        paddingVertical: SIZES.padding * 3,
+                        paddingHorizontal: SIZES.padding * 2,
+                        borderRadius: SIZES.radius,
+                        backgroundColor: COLORS.white
+                    }}
                 >
-                    <View style={{ flexDirection: 'row', alignItems: 'center'}}>
-                        <Image 
-                            source={restaurent?.courier.avatar}
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {/* Avatar */}
+                        <Image
+                            source={restaurant?.courier.avatar}
                             style={{
                                 width: 50,
                                 height: 50,
@@ -254,125 +261,117 @@ const Order = ({ route, navigation }) => {
                             }}
                         />
 
-                        <View style={{ flex: 1, marginLeft: 6}}>
-                            <View style={{
-                                flexDirection: 'row',
-                                justifyContent: 'space-between'
-                            }}>
-                                <Text style={{fontSize: 16, color: '#222'}}>{restaurent?.courier.name}</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center'}}>
-                                    <Image 
-                                       source={(require('../static/images/starIcon.png'))}
-                                       style={{
-                                           width: 18,
-                                           height: 18,
-                                           tintColor: 'orange',
-                                           marginRight: 6,
-                                       }}
+                        <View style={{ flex: 1, marginLeft: SIZES.padding }}>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={{ ...FONTS.h4 }}>{restaurant?.courier.name}</Text>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Image
+                                        source={icons.star}
+                                        style={{ width: 18, height: 18, tintColor: COLORS.primary, marginRight: SIZES.padding }}
                                     />
-                                    <Text style={{fontSize: 18}}>{restaurent?.rating}</Text>
+                                    <Text style={{ ...FONTS.body3 }}>{restaurant?.rating}</Text>
                                 </View>
                             </View>
 
-                            <Text style={{fontSize: 16, color: '#666'}}>{restaurent?.name}</Text>
+                            <Text style={{ color: COLORS.darkgray, ...FONTS.body4 }}>{restaurant?.name}</Text>
                         </View>
                     </View>
 
-                    {/* buttoms */}
                     <View
-                       style={{
-                           flexDirection: 'row',
-                           marginTop: 12,
-                           justifyContent: 'space-between'
-                       }}
+                        style={{
+                            flexDirection: 'row',
+                            marginTop: SIZES.padding * 2,
+                            justifyContent: 'space-between'
+                        }}
                     >
                         <TouchableOpacity
-                           style={{
-                               flex: 1,
-                               marginRight: 10,
-                               height: 50,
-                               backgroundColor: 'orange',
-                               alignItems: 'center',
-                               justifyContent: 'center',
-                               borderRadius: 10,
-                           }}
-
-                           onPress={() => navigation.navigate("Home")}
+                            style={{
+                                flex: 1,
+                                height: 50,
+                                marginRight: 10,
+                                backgroundColor: COLORS.primary,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 10
+                            }}
+                            onPress={() => navigation.navigate("Home")}
                         >
-                            <Text style={{fontSize: 18, color: 'white'}}>Call</Text>
+                            <Text style={{ ...FONTS.h4, color: COLORS.white }}>Call</Text>
                         </TouchableOpacity>
+
                         <TouchableOpacity
-                           style={{
-                               flex: 1,
-                               height: 50,
-                               backgroundColor: '#999',
-                               alignItems: 'center',
-                               justifyContent: 'center',
-                               borderRadius: 10,
-                           }}
-                           onPress={() => navigation.goBack()}
+                            style={{
+                                flex: 1,
+                                height: 50,
+                                backgroundColor: COLORS.secondary,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 10
+                            }}
+                            onPress={() => navigation.goBack()}
                         >
-                            <Text style={{fontSize: 18, color: 'white'}}>Cancel</Text>
+                            <Text style={{ ...FONTS.h4, color: COLORS.white }}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
+
                 </View>
             </View>
         )
     }
 
-    const renderButtons = () => {
+    function renderButtons() {
         return (
             <View
-               style={{
-                   position: 'absolute',
-                   bottom: 280,
-                   right: 12,
-                   width: 60,
-                   height: 130,
-                   justifyContent: 'space-between',
-               }}
+                style={{
+                    position: 'absolute',
+                    bottom: SIZES.height * 0.35,
+                    right: SIZES.padding * 2,
+                    width: 60,
+                    height: 130,
+                    justifyContent: 'space-between'
+                }}
             >
-                {/*Zoom in  */}
                 <TouchableOpacity
-                   style={{
-                       width: 60,
-                       height: 60,
-                       borderRadius: 30,
-                       backgroundColor: 'white',
-                       alignItems: 'center',
-                       justifyContent: 'center'
-                   }}
-                   onPress={() => zoomIn()}
+                    style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 30,
+                        backgroundColor: COLORS.white,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    onPress={() => zoomIn()}
                 >
-                    <Text style={{fontSize: 26}}>+</Text>
+                    <Text style={{ ...FONTS.body1 }}>+</Text>
                 </TouchableOpacity>
 
-                {/* Zoom out */}
                 <TouchableOpacity
-                   style={{
-                       width: 60,
-                       height: 60,
-                       borderRadius: 30,
-                       backgroundColor: 'white',
-                       alignItems: 'center',
-                       justifyContent: 'center'
-                   }}
-                   onPress={() => zoomOut()}
+                    style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 30,
+                        backgroundColor: COLORS.white,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    onPress={() => zoomOut()}
                 >
-                    <Text style={{fontSize: 26}}>-</Text>
+                    <Text style={{ ...FONTS.body1 }}>-</Text>
                 </TouchableOpacity>
             </View>
+
         )
     }
 
     return (
-        <View style={{ flex: 1, }}>
+        <View style={{ flex: 1 }}>
             {renderMap()}
             {renderDestinationHeader()}
-            {renderdeliveryIndo()}
+            {renderDeliveryInfo()}
             {renderButtons()}
         </View>
     )
 }
 
-export default Order
+export default OrderDelivery;
